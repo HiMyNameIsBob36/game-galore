@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Game Galore >> Word Link</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cal+Sans&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../word-link/style.css">
+    <link rel="icon" href="../word-link/logo.png">
+    <meta property="og:title" content="Game Galore >> Word Link" />
+    <meta property="og:description" content="Game Link! Currently in development." />
+    <meta property="og:image" href="../word-link/logo.png" />
+    
+</head>
+
+
+</head>
+<body>
+
+<div class="container">
+
+    <h1>🔗 Word Chain</h1>
+
+    <div id="gameArea" class="hidden">
+        <div class="current-word" id="currentWord"></div>
+        <div>Start with: <b id="requiredLetter"></b></div>
+
+        <input type="text" id="wordInput" placeholder="Type word & press Enter..." autocomplete="off">
+
+        <div class="timer">⏳ <span id="time">10.00</span>s</div>
+
+        <div>
+            <button id="toggleBtn">Pause</button>
+            <button onclick="restartGame()">Restart</button>
+        </div>
+
+        <div class="history" id="history"></div>
+    </div>
+
+</div>
+
+<!-- Start Screen -->
+<div id="startScreen" class="overlay">
+    <div class="popup">
+        <h2>Ready to Play?</h2>
+        <b>When the game starts, you will need to write a word starting wtih the last letter of thr word before! </b>
+        <button onclick="startGame()">Play</button>
+    </div>
+</div>
+
+<!-- Custom Popup -->
+<div id="customPopup" class="overlay hidden">
+    <div class="popup">
+        <div id="popupMessage"></div>
+        <br>
+        <button onclick="closePopup()">OK</button>
+    </div>
+</div>
+
+    <script src="../word-link/scripts.js"> </script>
+    
+</body>
+</html>
