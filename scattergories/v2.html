@@ -231,7 +231,7 @@ const categoriesEl = document.getElementById("categories");
 
 /* Fetch categories from JSON */
 async function loadCategories() {
-  const response = await fetch("categories.json");
+  const response = await fetch("scattergories/list.json");
   const data = await response.json();
   allCategories = data.categories;
 }
