@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Word Chain Game</title>
+
+<style>
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+        background: linear-gradient(135deg, #1e1e2f, #2b2b45);
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+
+    .container {
+        background: rgba(0,0,0,0.4);
+        padding: 30px;
+        border-radius: 20px;
+        width: 400px;
+        text-align: center;
+        box-shadow: 0 0 30px rgba(0,0,0,0.6);
+    }
+
+    h1 {
+        margin-bottom: 10px;
+    }
+
+    .current-word {
+        font-size: 28px;
+        margin: 15px 0;
+        color: #00e5ff;
+    }
+
+    .letter {
+        font-size: 20px;
+        margin-bottom: 10px;
+    }
+
+    input {
+        width: 80%;
+        padding: 10px;
+        border-radius: 10px;
+        border: none;
+        font-size: 16px;
+        text-align: center;
+    }
+
+    .timer {
+        font-size: 24px;
+        margin: 15px 0;
+    }
+
+    .buttons button {
+        margin: 5px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    .history {
+        margin-top: 15px;
+        max-height: 100px;
+        overflow-y: auto;
+        font-size: 14px;
+        opacity: 0.8;
+    }
+
+    .lost {
+        color: red;
+        font-weight: bold;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>🔗 Word Chain</h1>
+
+    <div class="current-word" id="currentWord">Loading...</div>
+    <div class="letter">Next word must start with: <b id="requiredLetter"></b></div>
+
+    <input type="text" id="wordInput" placeholder="Type word and press Enter..." autocomplete="off">
+
+    <div class="timer">⏳ Time Left: <span id="time">10</span>s</div>
+
+    <div>
+        Timer Duration:
+        <input type="number" id="timerSetting" value="10" min="3" max="60" style="width:60px;">
+    </div>
+
+    <div class="buttons">
+        <button onclick="pauseTimer()">Pause</button>
+        <button onclick="resumeTimer()">Resume</button>
+        <button onclick="restartGame()">Restart</button>
+    </div>
+
+    <div class="history" id="history"></div>
+    <div class="lost" id="lostMessage"></div>
+</div>
+
+<script>
+// =======================
+// list.js (your word list)
+// =======================
+const wordList = [
+    "apple", "tiger", "rabbit", "table", "elephant",
+    "night", "tree", "engine", "eagle", "earth",
+    "hat", "top", "pen", "notebook", "kangaroo",
+    "orange", "grape", "egg", "guitar", "robot",
+    "train", "nose", "ear", "ring", "glass"
+];
+
+// =======================
+// Game Logic
+// =======================
+
+let currentWord = "";
+let timer;
+let timeLeft = 10;
+let timerDuration = 10;
+let isPaused = false;
+let usedWords = [];
+
+const currentWordEl = document.getElementById("currentWord");
+const requiredLetterEl = document.getElementById("requiredLetter");
+const inputEl = document.getElementById("wordInput");
+const timeEl = document.getElementById("time");
+const historyEl = document.getElementById("history");
+const lostMessageEl = document.getElementById("lostMessage");
+const timerSettingEl = document.getElementById("timerSetting");
+
+function startGame() {
+    usedWords = [];
+    lostMessageEl.textContent = "";
+    currentWord = wordList[Math.floor(Math.random() * wordList.length)];
+    usedWords.push(currentWord);
+    updateDisplay();
+    resetTimer();
+}
+
+function updateDisplay() {
+    currentWordEl.textContent = currentWord;
+    const lastLetter = currentWord.slice(-1).toLowerCase();
+    requiredLetterEl.textContent = lastLetter.toUpperCase();
+    historyEl.innerHTML = usedWords.join(" ➜ ");
+}
+
+function resetTimer() {
+    clearInterval(timer);
+    timerDuration = parseInt(timerSettingEl.value);
+    timeLeft = timerDuration;
+    timeEl.textContent = timeLeft;
+    isPaused = false;
+
+    timer = setInterval(() => {
+        if (!isPaused) {
+            timeLeft--;
+            timeEl.textContent = timeLeft;
+
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                lostMessageEl.textContent = "⛔ Time's up! Game Over.";
+                inputEl.disabled = true;
+            }
+        }
+    }, 1000);
+}
+
+function pauseTimer() {
+    isPaused = true;
+}
+
+function resumeTimer() {
+    isPaused = false;
+}
+
+function restartGame() {
+    inputEl.disabled = false;
+    inputEl.value = "";
+    startGame();
+}
+
+inputEl.addEventListener("keydown", function(e) {
+    if (e.key === "Enter") {
+        const newWord = inputEl.value.trim().toLowerCase();
+        if (!newWord) return;
+
+        const requiredLetter = currentWord.slice(-1).toLowerCase();
+
+        if (newWord[0] !== requiredLetter) {
+            alert("Word must start with " + requiredLetter.toUpperCase());
+            return;
+        }
+
+        if (usedWords.includes(newWord)) {
+            alert("Word already used!");
+            return;
+        }
+
+        usedWords.push(newWord);
+        currentWord = newWord;
+        inputEl.value = "";
+        updateDisplay();
+        resetTimer();
+    }
+});
+
+// Start game on load
+startGame();
+</script>
+
+</body>
+</html>
