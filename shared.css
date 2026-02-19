@@ -1,1 +1,9 @@
-
+* {
+  background: repeating-linear-gradient(
+    45deg,
+    #eee,
+    #eee 6px,
+    #ddd 6px,
+    #ddd 12px
+  );
+}
