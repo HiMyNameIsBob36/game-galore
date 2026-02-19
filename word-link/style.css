@@ -1,0 +1,70 @@
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+        background: linear-gradient(135deg, #1e1e2f, #2b2b45);
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+
+    .container {
+        background: rgba(0,0,0,0.4);
+        padding: 30px;
+        border-radius: 20px;
+        width: 400px;
+        text-align: center;
+        box-shadow: 0 0 30px rgba(0,0,0,0.6);
+    }
+
+    h1 {
+        margin-bottom: 10px;
+    }
+
+    .current-word {
+        font-size: 28px;
+        margin: 15px 0;
+        color: #00e5ff;
+    }
+
+    .letter {
+        font-size: 20px;
+        margin-bottom: 10px;
+    }
+
+    input {
+        width: 80%;
+        padding: 10px;
+        border-radius: 10px;
+        border: none;
+        font-size: 16px;
+        text-align: center;
+    }
+
+    .timer {
+        font-size: 24px;
+        margin: 15px 0;
+    }
+
+    .buttons button {
+        margin: 5px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    .history {
+        margin-top: 15px;
+        max-height: 100px;
+        overflow-y: auto;
+        font-size: 14px;
+        opacity: 0.8;
+    }
+
+    .lost {
+        color: red;
+        font-weight: bold;
+    }
