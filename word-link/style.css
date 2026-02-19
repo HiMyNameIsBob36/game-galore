@@ -82,6 +82,12 @@ button:hover { transform: scale(1.05); }
     z-index: 999;
 }
 
+.home {
+ position: fixed;
+ bottom: 0;
+ left: 0;
+}
+
 .popup {
     background: #1e1e2f;
     padding: 25px;
