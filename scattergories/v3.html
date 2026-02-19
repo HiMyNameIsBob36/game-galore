@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scattergories</title>
+
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+  background: #f2f2f2;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.container {
+  width: 95%;
+  height: 90vh;
+  border: 3px solid #111;
+  display: flex;
+  flex-direction: column;
+}
+
+/* MAIN LAYOUT */
+.top {
+  flex: 1;
+  display: flex;
+}
+
+/* LEFT PANEL */
+.left {
+  width: 30%;
+  border-right: 3px solid #111;
+  display: flex;
+  flex-direction: column;
+}
+
+.letter-box {
+  flex: 2;
+  border-bottom: 3px solid #111;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: repeating-linear-gradient(
+    45deg,
+    #eee,
+    #eee 6px,
+    #ddd 6px,
+    #ddd 12px
+  );
+}
+
+.letter-box h1 {
+  font-size: 150px;
+}
+
+.bottom-left {
+  flex: 1;
+  display: flex;
+}
+
+.timer {
+  flex: 1;
+  border-right: 3px solid #111;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 60px;
+}
+
+.controls {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.controls button {
+  flex: 1;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  background: #111;
+  color: white;
+}
+
+/* MIDDLE */
+.middle {
+  flex: 1;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+}
+
+.category {
+  background: #111;
+  color: white;
+  padding: 8px 12px;
+  font-weight: bold;
+}
+
+/* RIGHT */
+.right {
+  width: 15%;
+  border-left: 3px solid #111;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+}
+
+.right button {
+  padding: 15px 25px;
+  cursor: pointer;
+  border: 2px solid #111;
+  background: white;
+  font-size: 16px;
+}
+
+/* FOOTER */
+.footer {
+  border-top: 3px solid #111;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.footer span {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* MODAL */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  background: rgba(0,0,0,0.6);
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: white;
+  padding: 25px;
+  width: 400px;
+  max-width: 90%;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="top">
+
+    <div class="left">
+      <div class="letter-box">
+        <h1 id="letter">A</h1>
+      </div>
+
+      <div class="bottom-left">
+        <div class="timer">
+          <span id="time">120</span>
+        </div>
+
+        <div class="controls">
+          <button onclick="startTimer()">Start</button>
+          <button onclick="pauseTimer()">Pause</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="middle" id="categories"></div>
+
+    <div class="right">
+      <button onclick="resetGame()">Restart</button>
+      <button onclick="toggleCategories()">Hide Categories</button>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    <div>Scattergories List Generator</div>
+    <span onclick="openModal()">How To Play</span>
+  </div>
+
+</div>
+
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <h2>How To Play</h2>
+    <p>
+      A random letter and 12 categories are generated.
+      You have 120 seconds to think of a word for each category
+      starting with the chosen letter.
+      No duplicates allowed!
+    </p>
+    <br>
+    <button onclick="closeModal()">Close</button>
+  </div>
+</div>
+
+<script>
+let timeLeft = 120;
+let timerInterval = null;
+let categoriesData = [];
+let categoriesHidden = false;
+
+const letterEl = document.getElementById("letter");
+const timeEl = document.getElementById("time");
+const categoriesEl = document.getElementById("categories");
+
+/* Load categories safely */
+async function loadCategories() {
+  try {
+    const res = await fetch("scattergories/list.json");
+    if (!res.ok) throw new Error("Failed to load JSON");
+    const data = await res.json();
+    categoriesData = data.categories;
+  } catch (err) {
+    console.error(err);
+    alert("Error loading categories.json");
+  }
+}
+
+/* Fisher-Yates shuffle */
+function shuffleArray(array) {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function generateCategories() {
+  categoriesEl.innerHTML = "";
+  const shuffled = shuffleArray(categoriesData);
+  const selected = shuffled.slice(0, 12);
+
+  selected.forEach(cat => {
+    const div = document.createElement("div");
+    div.className = "category";
+    div.textContent = cat;
+    categoriesEl.appendChild(div);
+  });
+}
+
+function randomLetter() {
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  return letters[Math.floor(Math.random() * letters.length)];
+}
+
+function startTimer() {
+  if (timerInterval) return;
+
+  timerInterval = setInterval(() => {
+    if (timeLeft > 0) {
+      timeLeft--;
+      timeEl.textContent = timeLeft;
+    } else {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+  }, 1000);
+}
+
+function pauseTimer() {
+  clearInterval(timerInterval);
+  timerInterval = null;
+}
+
+function resetGame() {
+  pauseTimer();
+  timeLeft = 120;
+  timeEl.textContent = timeLeft;
+  letterEl.textContent = randomLetter();
+  generateCategories();
+}
+
+function toggleCategories() {
+  categoriesHidden = !categoriesHidden;
+  categoriesEl.style.visibility = categoriesHidden ? "hidden" : "visible";
+}
+
+function openModal() {
+  document.getElementById("modal").style.display = "flex";
+}
+
+function closeModal() {
+  document.getElementById("modal").style.display = "none";
+}
+
+/* Init */
+window.addEventListener("DOMContentLoaded", async () => {
+  await loadCategories();
+  resetGame();
+});
+</script>
+
+</body>
+</html>
