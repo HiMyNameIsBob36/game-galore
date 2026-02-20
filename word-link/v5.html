@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Word Chain</title>
+
+<style>
+* { box-sizing: border-box; font-family: Arial, sans-serif; }
+
+body {
+    margin: 0;
+    background: #111;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* Main Card */
+.container {
+    width: 450px;
+    background: #000;
+    border: 2px solid white;
+    padding: 30px;
+    text-align: center;
+    position: relative;
+}
+
+/* Typography */
+h1 { margin-top: 0; font-weight: 300; }
+
+.current-word {
+    font-size: 32px;
+    margin: 15px 0;
+}
+
+.timer {
+    font-size: 24px;
+    margin: 10px 0;
+}
+
+.score {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+/* Input */
+input {
+    width: 90%;
+    padding: 12px;
+    background: black;
+    color: white;
+    border: 2px solid white;
+    text-align: center;
+    font-size: 16px;
+}
+
+/* Buttons */
+button {
+    margin: 6px;
+    padding: 10px 16px;
+    border: 2px solid white;
+    background: black;
+    color: white;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+button:hover {
+    background: white;
+    color: black;
+}
+
+/* Striped Button */
+.striped {
+    background: repeating-linear-gradient(
+        45deg,
+        black,
+        black 5px,
+        white 5px,
+        white 10px
+    );
+    color: black;
+}
+
+/* Dotted Button */
+.dotted {
+    background: radial-gradient(white 1px, black 1px);
+    background-size: 10px 10px;
+}
+
+/* Overlay */
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.95);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.hidden { display: none; }
+
+.popup {
+    background: black;
+    border: 2px solid white;
+    padding: 25px;
+    width: 350px;
+    text-align: center;
+}
+
+select {
+    background: black;
+    color: white;
+    border: 2px solid white;
+    padding: 5px;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<h1>WORD CHAIN</h1>
+
+<div id="gameArea" class="hidden">
+    <div class="current-word" id="currentWord"></div>
+    <div>Start with: <b id="requiredLetter"></b></div>
+
+    <input id="wordInput" placeholder="Type word & press Enter">
+
+    <div class="timer">⏳ <span id="time">10.00</span>s</div>
+    <div class="score">Score: <span id="score">0</span></div>
+
+    <button id="pauseBtn" class="striped">Pause</button>
+    <button onclick="openSettings()" class="dotted">Settings</button>
+</div>
+
+</div>
+
+<!-- HOME SCREEN -->
+<div id="homeScreen" class="overlay">
+    <div class="popup">
+        <h2>Ready?</h2>
+        <button class="striped" onclick="startGame()">Play</button>
+        <button class="dotted" onclick="openSettings()">Settings</button>
+    </div>
+</div>
+
+<!-- SETTINGS -->
+<div id="settingsMenu" class="overlay hidden">
+    <div class="popup">
+        <h3>Settings</h3>
+
+        <p>Word Theme:</p>
+        <select id="themeSelect">
+            <option value="mixed">Mixed</option>
+            <option value="animals">Animals</option>
+            <option value="objects">Objects</option>
+        </select>
+
+        <p>
+            <label>
+                <input type="checkbox" id="msToggle" checked>
+                Show Milliseconds
+            </label>
+        </p>
+
+        <p>
+            Score = word length × speed bonus.
+        </p>
+
+        <button onclick="goHome()">Back to Home</button>
+        <button onclick="closeSettings()">Close</button>
+    </div>
+</div>
+
+<script>
+const wordThemes = {
+    mixed: ["apple","tiger","table","rabbit","engine","orange","robot","glass"],
+    animals: ["tiger","rabbit","eagle","kangaroo","lion","zebra","panda","whale"],
+    objects: ["table","engine","glass","notebook","guitar","robot","chair","phone"]
+};
+
+let theme = "mixed";
+let currentWord = "";
+let usedWords = [];
+let score = 0;
+let baseTime = 10;
+let currentTime = baseTime;
+let startTimestamp = 0;
+let animationFrame;
+let paused = false;
+let showMilliseconds = true;
+
+const wordEl = document.getElementById("currentWord");
+const letterEl = document.getElementById("requiredLetter");
+const inputEl = document.getElementById("wordInput");
+const timeEl = document.getElementById("time");
+const scoreEl = document.getElementById("score");
+const pauseBtn = document.getElementById("pauseBtn");
+
+function startGame() {
+    document.getElementById("homeScreen").classList.add("hidden");
+    document.getElementById("gameArea").classList.remove("hidden");
+    score = 0;
+    currentTime = baseTime;
+    nextWord(true);
+}
+
+function nextWord(first=false) {
+    if (!first) currentTime = Math.max(3, currentTime - 0.4);
+
+    const list = wordThemes[theme];
+    currentWord = list[Math.floor(Math.random() * list.length)];
+    usedWords = [currentWord];
+
+    wordEl.textContent = currentWord;
+    letterEl.textContent = currentWord.slice(-1).toUpperCase();
+
+    startTimer();
+}
+
+function startTimer() {
+    cancelAnimationFrame(animationFrame);
+    startTimestamp = performance.now();
+    updateTimer();
+}
+
+function updateTimer() {
+    if (paused) {
+        animationFrame = requestAnimationFrame(updateTimer);
+        return;
+    }
+
+    const elapsed = (performance.now() - startTimestamp) / 1000;
+    const remaining = currentTime - elapsed;
+
+    if (remaining <= 0) {
+        timeEl.textContent = "0";
+        alert("Game Over! Final Score: " + score);
+        goHome();
+        return;
+    }
+
+    timeEl.textContent = showMilliseconds
+        ? remaining.toFixed(2)
+        : Math.ceil(remaining);
+
+    animationFrame = requestAnimationFrame(updateTimer);
+}
+
+pauseBtn.onclick = () => {
+    paused = !paused;
+    pauseBtn.textContent = paused ? "Play" : "Pause";
+
+    if (!paused) {
+        startTimestamp = performance.now() -
+            ((currentTime - parseFloat(timeEl.textContent)) * 1000);
+    }
+};
+
+inputEl.addEventListener("keydown", e => {
+    if (e.key !== "Enter" || paused) return;
+
+    const word = inputEl.value.trim().toLowerCase();
+    if (!word) return;
+
+    if (word[0] !== currentWord.slice(-1)) return;
+
+    const remaining = parseFloat(timeEl.textContent);
+    const wordScore = word.length * Math.floor(remaining * 10);
+    score += wordScore;
+
+    scoreEl.textContent = score;
+
+    currentWord = word;
+    wordEl.textContent = word;
+    letterEl.textContent = word.slice(-1).toUpperCase();
+
+    inputEl.value = "";
+    startTimestamp = performance.now();
+    currentTime = Math.max(3, currentTime - 0.4);
+});
+
+function openSettings() {
+    paused = true;
+    document.getElementById("settingsMenu").classList.remove("hidden");
+}
+
+function closeSettings() {
+    theme = document.getElementById("themeSelect").value;
+    showMilliseconds = document.getElementById("msToggle").checked;
+    paused = false;
+    document.getElementById("settingsMenu").classList.add("hidden");
+}
+
+function goHome() {
+    cancelAnimationFrame(animationFrame);
+    paused = false;
+    document.getElementById("settingsMenu").classList.add("hidden");
+    document.getElementById("gameArea").classList.add("hidden");
+    document.getElementById("homeScreen").classList.remove("hidden");
+}
+</script>
+
+</body>
+</html>
