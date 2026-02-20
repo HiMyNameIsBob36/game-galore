@@ -91,6 +91,10 @@ color:white;
 border-color:white;
 }
 
+.home {
+  width: 75%;
+}
+
 button:hover{transform:scale(1.05)}
 
 .score{margin-top:10px;font-size:18px}
@@ -109,7 +113,7 @@ background:rgba(0,0,0,.5);
 display:none;
 justify-content:center;
 align-items:center;
-animation:fadeIn .3s ease;
+animation:fadeIn .3s ease
 }
 
 .popup-content{
@@ -172,9 +176,7 @@ to{transform:translateY(0);opacity:1}
 
 <button onclick="toggleDark()">Toggle Dark Mode</button>
 <button onclick="toggleMS()">Toggle Milliseconds</button>
-<button onclick="resetGame()">Reset Game</button>
-<button onclick="goHome()">Go Home</button>
-<button onclick="window.location.href='https://yourlink.com'">Visit My Link</button>
+<button class="home" onclick="window.location.href='https://yourlink.com'"><img src="../home.png"></img></button>
 
 <br><br>
 <button onclick="closeSettings()">Close</button>
@@ -324,11 +326,6 @@ input.value="";
 input.disabled=true;
 running=false;
 clearInterval(interval);
-closeSettings();
-}
-
-function goHome(){
-resetGame();
 closeSettings();
 }
 
