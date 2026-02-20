@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Letter Lock</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #1e1e2f, #2a2a45);
+        color: white;
+        text-align: center;
+        margin: 0;
+        padding: 0;
+    }
+
+    h1 {
+        margin-top: 30px;
+        font-size: 3rem;
+        letter-spacing: 2px;
+    }
+
+    .game-box {
+        background: #2f2f4f;
+        padding: 30px;
+        border-radius: 20px;
+        width: 90%;
+        max-width: 500px;
+        margin: 40px auto;
+        box-shadow: 0 0 30px rgba(0,0,0,0.4);
+        transition: 0.3s ease;
+    }
+
+    .current-word {
+        font-size: 2.5rem;
+        letter-spacing: 5px;
+        margin: 20px 0;
+    }
+
+    input {
+        padding: 12px;
+        font-size: 1.2rem;
+        border-radius: 10px;
+        border: none;
+        outline: none;
+        width: 60%;
+        text-transform: uppercase;
+    }
+
+    button {
+        padding: 12px 20px;
+        font-size: 1rem;
+        border-radius: 10px;
+        border: none;
+        margin-left: 10px;
+        cursor: pointer;
+        background: #6c63ff;
+        color: white;
+        transition: 0.2s ease;
+    }
+
+    button:hover {
+        background: #847dff;
+        transform: scale(1.05);
+    }
+
+    .players {
+        margin-top: 20px;
+        font-size: 1rem;
+    }
+
+    .eliminated {
+        color: #ff4d4d;
+        text-decoration: line-through;
+    }
+
+    .history {
+        margin-top: 20px;
+        font-size: 0.9rem;
+        opacity: 0.8;
+        max-height: 120px;
+        overflow-y: auto;
+    }
+
+    .message {
+        margin-top: 15px;
+        font-weight: bold;
+        min-height: 24px;
+    }
+</style>
+</head>
+
+<body>
+
+<h1>🔒 Letter Lock</h1>
+
+<div class="game-box">
+    <div>Current Word</div>
+    <div class="current-word" id="currentWord">GAME</div>
+
+    <input type="text" id="wordInput" maxlength="10" placeholder="NEW WORD">
+    <button onclick="submitWord()">Submit</button>
+
+    <div class="message" id="message"></div>
+
+    <div class="players" id="players"></div>
+
+    <div class="history" id="history"></div>
+</div>
+
+<script>
+let currentWord = "GAME";
+let usedWords = ["GAME"];
+let players = ["Player 1", "Player 2", "Player 3"];
+let eliminated = [];
+let currentPlayerIndex = 0;
+
+const currentWordEl = document.getElementById("currentWord");
+const messageEl = document.getElementById("message");
+const historyEl = document.getElementById("history");
+const playersEl = document.getElementById("players");
+
+function renderPlayers() {
+    playersEl.innerHTML = "";
+    players.forEach((player, index) => {
+        let span = document.createElement("div");
+        span.textContent = player + (index === currentPlayerIndex ? " 👈" : "");
+        if (eliminated.includes(player)) {
+            span.classList.add("eliminated");
+        }
+        playersEl.appendChild(span);
+    });
+}
+
+function isOneLetterDifferent(word1, word2) {
+    if (word1.length !== word2.length) return false;
+
+    let diff = 0;
+    for (let i = 0; i < word1.length; i++) {
+        if (word1[i] !== word2[i]) diff++;
+    }
+    return diff === 1;
+}
+
+async function isValidWord(word) {
+    try {
+        let response = await fetch("https://api.dictionaryapi.dev/api/v2/entries/en/" + word);
+        return response.ok;
+    } catch {
+        return false;
+    }
+}
+
+async function submitWord() {
+    const input = document.getElementById("wordInput");
+    let newWord = input.value.trim().toUpperCase();
+    input.value = "";
+
+    if (eliminated.includes(players[currentPlayerIndex])) return;
+
+    if (!isOneLetterDifferent(currentWord, newWord)) {
+        eliminatePlayer("Word must change exactly ONE letter!");
+        return;
+    }
+
+    if (usedWords.includes(newWord)) {
+        eliminatePlayer("Word already used!");
+        return;
+    }
+
+    const valid = await isValidWord(newWord);
+    if (!valid) {
+        eliminatePlayer("Not a real word!");
+        return;
+    }
+
+    // Valid move
+    currentWord = newWord;
+    usedWords.push(newWord);
+    historyEl.innerHTML += newWord + " → ";
+    messageEl.textContent = "Nice move!";
+    currentWordEl.textContent = currentWord;
+
+    nextTurn();
+}
+
+function eliminatePlayer(reason) {
+    const player = players[currentPlayerIndex];
+    eliminated.push(player);
+    messageEl.textContent = player + " eliminated! (" + reason + ")";
+    nextTurn();
+}
+
+function nextTurn() {
+    let activePlayers = players.filter(p => !eliminated.includes(p));
+    if (activePlayers.length <= 1) {
+        messageEl.textContent = activePlayers[0] + " wins! 🎉";
+        return;
+    }
+
+    do {
+        currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+    } while (eliminated.includes(players[currentPlayerIndex]));
+
+    renderPlayers();
+}
+
+renderPlayers();
+</script>
+
+</body>
+</html>
