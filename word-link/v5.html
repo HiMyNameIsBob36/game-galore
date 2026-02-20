@@ -7,94 +7,116 @@
 <style>
 * { box-sizing: border-box; font-family: Arial, sans-serif; }
 
+/* ---------- THEME VARIABLES ---------- */
+:root {
+    --bg: #ffffff;
+    --text: #111;
+    --card: #ffffff;
+    --border: #111;
+}
+
+body.dark {
+    --bg: #111;
+    --text: #ffffff;
+    --card: #1a1a1a;
+    --border: #ffffff;
+}
+
+/* ---------- BODY ---------- */
 body {
     margin: 0;
-    background: #111;
-    color: white;
+    background:
+        repeating-linear-gradient(
+            45deg,
+            #f3f3f3,
+            #f3f3f3 2px,
+            #ffffff 2px,
+            #ffffff 12px
+        );
+    background-color: var(--bg);
+    color: var(--text);
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
+    transition: 0.3s;
 }
 
-/* Main Card */
+body.dark {
+    background:
+        repeating-linear-gradient(
+            45deg,
+            #1a1a1a,
+            #1a1a1a 2px,
+            #111 2px,
+            #111 12px
+        );
+}
+
+/* ---------- CARD ---------- */
 .container {
-    width: 450px;
-    background: #000;
-    border: 2px solid white;
+    width: 460px;
+    background: var(--card);
+    border: 2px solid var(--border);
     padding: 30px;
     text-align: center;
-    position: relative;
+    transition: 0.3s;
 }
 
-/* Typography */
-h1 { margin-top: 0; font-weight: 300; }
+/* ---------- TYPOGRAPHY ---------- */
+h1 { margin-top: 0; font-weight: 400; }
 
 .current-word {
     font-size: 32px;
     margin: 15px 0;
 }
 
-.timer {
-    font-size: 24px;
-    margin: 10px 0;
-}
+.timer { font-size: 24px; margin: 10px 0; }
 
-.score {
-    font-size: 18px;
-    margin-bottom: 10px;
-}
+.score { margin-bottom: 10px; }
 
-/* Input */
+/* ---------- INPUT ---------- */
 input {
     width: 90%;
     padding: 12px;
-    background: black;
-    color: white;
-    border: 2px solid white;
+    background: transparent;
+    color: var(--text);
+    border: 2px solid var(--border);
     text-align: center;
-    font-size: 16px;
 }
 
-/* Buttons */
+/* ---------- BUTTONS ---------- */
 button {
     margin: 6px;
-    padding: 10px 16px;
-    border: 2px solid white;
-    background: black;
-    color: white;
+    padding: 8px 16px;
+    border: 2px solid var(--border);
+    background: transparent;
+    color: var(--text);
     cursor: pointer;
     transition: 0.2s;
 }
 
 button:hover {
-    background: white;
-    color: black;
+    background: var(--text);
+    color: var(--bg);
 }
 
-/* Striped Button */
-.striped {
-    background: repeating-linear-gradient(
-        45deg,
-        black,
-        black 5px,
-        white 5px,
-        white 10px
-    );
-    color: black;
+/* ---------- HISTORY ---------- */
+.history {
+    margin-top: 15px;
+    max-height: 90px;
+    overflow-y: auto;
+    font-size: 14px;
+    opacity: 0.7;
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
 }
 
-/* Dotted Button */
-.dotted {
-    background: radial-gradient(white 1px, black 1px);
-    background-size: 10px 10px;
-}
-
-/* Overlay */
+/* ---------- OVERLAYS ---------- */
 .overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.95);
+    background: rgba(0,0,0,0.7);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -103,18 +125,44 @@ button:hover {
 .hidden { display: none; }
 
 .popup {
-    background: black;
-    border: 2px solid white;
+    background: var(--card);
+    border: 2px solid var(--border);
     padding: 25px;
     width: 350px;
     text-align: center;
 }
 
-select {
-    background: black;
-    color: white;
-    border: 2px solid white;
-    padding: 5px;
+/* ---------- CUSTOM TOGGLE ---------- */
+.toggle {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    margin: 6px 0;
+}
+
+.toggle input { display: none; }
+
+.slider {
+    width: 40px;
+    height: 20px;
+    border: 2px solid var(--border);
+    margin-right: 10px;
+    position: relative;
+}
+
+.slider::before {
+    content: "";
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    background: var(--border);
+    top: 1px;
+    left: 1px;
+    transition: 0.2s;
+}
+
+.toggle input:checked + .slider::before {
+    transform: translateX(18px);
 }
 </style>
 </head>
@@ -133,18 +181,20 @@ select {
     <div class="timer">⏳ <span id="time">10.00</span>s</div>
     <div class="score">Score: <span id="score">0</span></div>
 
-    <button id="pauseBtn" class="striped">Pause</button>
-    <button onclick="openSettings()" class="dotted">Settings</button>
+    <button id="pauseBtn">Pause</button>
+    <button onclick="openSettings()">Settings</button>
+
+    <div class="history" id="history"></div>
 </div>
 
 </div>
 
-<!-- HOME SCREEN -->
+<!-- HOME -->
 <div id="homeScreen" class="overlay">
     <div class="popup">
         <h2>Ready?</h2>
-        <button class="striped" onclick="startGame()">Play</button>
-        <button class="dotted" onclick="openSettings()">Settings</button>
+        <button onclick="startGame()">Play</button>
+        <button onclick="openSettings()">Settings</button>
     </div>
 </div>
 
@@ -153,78 +203,101 @@ select {
     <div class="popup">
         <h3>Settings</h3>
 
-        <p>Word Theme:</p>
-        <select id="themeSelect">
-            <option value="mixed">Mixed</option>
-            <option value="animals">Animals</option>
-            <option value="objects">Objects</option>
-        </select>
+        <label class="toggle">
+            <input type="checkbox" id="darkToggle">
+            <div class="slider"></div>
+            Dark Mode
+        </label>
 
-        <p>
-            <label>
-                <input type="checkbox" id="msToggle" checked>
-                Show Milliseconds
-            </label>
+        <label class="toggle">
+            <input type="checkbox" id="themeToggle" checked>
+            <div class="slider"></div>
+            Use Word Themes
+        </label>
+
+        <label class="toggle">
+            <input type="checkbox" id="msToggle" checked>
+            <div class="slider"></div>
+            Show Milliseconds
+        </label>
+
+        <p style="font-size:13px; opacity:0.7;">
+            Score = word length × remaining time bonus.
         </p>
 
-        <p>
-            Score = word length × speed bonus.
-        </p>
-
-        <button onclick="goHome()">Back to Home</button>
+        <button onclick="goHome()">Home</button>
         <button onclick="closeSettings()">Close</button>
     </div>
 </div>
 
+<!-- POPUP -->
+<div id="customPopup" class="overlay hidden">
+    <div class="popup">
+        <div id="popupMessage"></div>
+        <br>
+        <button onclick="closePopup()">OK</button>
+    </div>
+</div>
+
 <script>
-const wordThemes = {
-    mixed: ["apple","tiger","table","rabbit","engine","orange","robot","glass"],
-    animals: ["tiger","rabbit","eagle","kangaroo","lion","zebra","panda","whale"],
-    objects: ["table","engine","glass","notebook","guitar","robot","chair","phone"]
+const themes = {
+    animals: ["tiger","rabbit","eagle","lion","zebra","panda","whale"],
+    objects: ["table","engine","glass","guitar","robot","chair","phone"]
 };
 
-let theme = "mixed";
+const mixed = [...themes.animals, ...themes.objects];
+
+let useThemes = true;
+let darkMode = false;
+let showMS = true;
+let score = 0;
 let currentWord = "";
 let usedWords = [];
-let score = 0;
 let baseTime = 10;
-let currentTime = baseTime;
-let startTimestamp = 0;
+let roundTime = baseTime;
+let startTime = 0;
 let animationFrame;
 let paused = false;
-let showMilliseconds = true;
 
 const wordEl = document.getElementById("currentWord");
 const letterEl = document.getElementById("requiredLetter");
 const inputEl = document.getElementById("wordInput");
 const timeEl = document.getElementById("time");
 const scoreEl = document.getElementById("score");
-const pauseBtn = document.getElementById("pauseBtn");
+const historyEl = document.getElementById("history");
 
 function startGame() {
     document.getElementById("homeScreen").classList.add("hidden");
     document.getElementById("gameArea").classList.remove("hidden");
     score = 0;
-    currentTime = baseTime;
+    roundTime = baseTime;
     nextWord(true);
 }
 
+function getWordList() {
+    if (!useThemes) return mixed;
+    return Math.random() > 0.5 ? themes.animals : themes.objects;
+}
+
 function nextWord(first=false) {
-    if (!first) currentTime = Math.max(3, currentTime - 0.4);
+    if (!first) roundTime = Math.max(3, roundTime - 0.4);
 
-    const list = wordThemes[theme];
-    currentWord = list[Math.floor(Math.random() * list.length)];
+    const list = getWordList();
+    currentWord = list[Math.floor(Math.random()*list.length)];
     usedWords = [currentWord];
+    updateDisplay();
+    startTimer();
+}
 
+function updateDisplay() {
     wordEl.textContent = currentWord;
     letterEl.textContent = currentWord.slice(-1).toUpperCase();
-
-    startTimer();
+    historyEl.innerHTML = usedWords.join(" ➜ ");
 }
 
 function startTimer() {
     cancelAnimationFrame(animationFrame);
-    startTimestamp = performance.now();
+    startTime = performance.now();
     updateTimer();
 }
 
@@ -234,54 +307,39 @@ function updateTimer() {
         return;
     }
 
-    const elapsed = (performance.now() - startTimestamp) / 1000;
-    const remaining = currentTime - elapsed;
+    const elapsed = (performance.now() - startTime)/1000;
+    const remaining = roundTime - elapsed;
 
     if (remaining <= 0) {
-        timeEl.textContent = "0";
-        alert("Game Over! Final Score: " + score);
-        goHome();
+        showPopup("Game Over! Final Score: " + score);
         return;
     }
 
-    timeEl.textContent = showMilliseconds
-        ? remaining.toFixed(2)
-        : Math.ceil(remaining);
-
+    timeEl.textContent = showMS ? remaining.toFixed(2) : Math.ceil(remaining);
     animationFrame = requestAnimationFrame(updateTimer);
 }
-
-pauseBtn.onclick = () => {
-    paused = !paused;
-    pauseBtn.textContent = paused ? "Play" : "Pause";
-
-    if (!paused) {
-        startTimestamp = performance.now() -
-            ((currentTime - parseFloat(timeEl.textContent)) * 1000);
-    }
-};
 
 inputEl.addEventListener("keydown", e => {
     if (e.key !== "Enter" || paused) return;
 
     const word = inputEl.value.trim().toLowerCase();
     if (!word) return;
-
-    if (word[0] !== currentWord.slice(-1)) return;
+    if (word[0] !== currentWord.slice(-1)) {
+        showPopup("Word must start with " + currentWord.slice(-1).toUpperCase());
+        return;
+    }
 
     const remaining = parseFloat(timeEl.textContent);
-    const wordScore = word.length * Math.floor(remaining * 10);
-    score += wordScore;
-
+    score += word.length * Math.floor(remaining * 10);
     scoreEl.textContent = score;
 
     currentWord = word;
-    wordEl.textContent = word;
-    letterEl.textContent = word.slice(-1).toUpperCase();
+    usedWords.push(word);
+    updateDisplay();
 
     inputEl.value = "";
-    startTimestamp = performance.now();
-    currentTime = Math.max(3, currentTime - 0.4);
+    startTime = performance.now();
+    roundTime = Math.max(3, roundTime - 0.4);
 });
 
 function openSettings() {
@@ -290,8 +348,12 @@ function openSettings() {
 }
 
 function closeSettings() {
-    theme = document.getElementById("themeSelect").value;
-    showMilliseconds = document.getElementById("msToggle").checked;
+    useThemes = document.getElementById("themeToggle").checked;
+    showMS = document.getElementById("msToggle").checked;
+    darkMode = document.getElementById("darkToggle").checked;
+
+    document.body.classList.toggle("dark", darkMode);
+
     paused = false;
     document.getElementById("settingsMenu").classList.add("hidden");
 }
@@ -302,6 +364,17 @@ function goHome() {
     document.getElementById("settingsMenu").classList.add("hidden");
     document.getElementById("gameArea").classList.add("hidden");
     document.getElementById("homeScreen").classList.remove("hidden");
+}
+
+function showPopup(msg) {
+    paused = true;
+    document.getElementById("popupMessage").innerText = msg;
+    document.getElementById("customPopup").classList.remove("hidden");
+}
+
+function closePopup() {
+    paused = false;
+    document.getElementById("customPopup").classList.add("hidden");
 }
 </script>
 
